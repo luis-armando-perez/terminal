@@ -1,4 +1,5 @@
 import "./bootstrap";
+import "./planificar"
 function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
@@ -18,8 +19,6 @@ document
     .addEventListener("click", toggleSidebar);
 document.getElementById("close").addEventListener("click", toggleSidebar);
 
-
-
 document.getElementById("ciudad").addEventListener("change", function () {
     const ciudad = this.value;
     const tbody = document.getElementById("tablaRutas");
@@ -31,7 +30,8 @@ document.getElementById("ciudad").addEventListener("change", function () {
     const cachedData = localStorage.getItem(cacheKey);
     const cachedTime = localStorage.getItem(cacheTimeKey);
 
-    if (cachedData && cachedTime && (ahora - cachedTime < 300000)) { // 5 minutos
+    if (cachedData && cachedTime && ahora - cachedTime < 300000) {
+        // 5 minutos
         renderTabla(JSON.parse(cachedData));
         return;
     }
@@ -78,9 +78,15 @@ document.getElementById("ciudad").addEventListener("change", function () {
 
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-4 py-4 text-sm text-gray-600">${ruta.destino}</td>
-                    <td class="px-4 py-4 text-sm text-gray-900">${ruta.precio}C$</td>
-                    <td class="px-4 py-4 text-sm text-gray-600">${ruta.salida_formato}</td>
+                    <td class="px-4 py-4 text-sm text-gray-600">${
+                        ruta.destino
+                    }</td>
+                    <td class="px-4 py-4 text-sm text-gray-900">${
+                        ruta.precio
+                    }C$</td>
+                    <td class="px-4 py-4 text-sm text-gray-600">${
+                        ruta.salida_formato
+                    }</td>
                     <td class="px-4 py-4">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             ${ruta.tipo ?? "tipo no disponible"}
@@ -97,6 +103,4 @@ document.getElementById("ciudad").addEventListener("change", function () {
         });
     }
 });
-
-
 

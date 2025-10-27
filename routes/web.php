@@ -16,5 +16,10 @@ Route::get('/horarios/ajax', [HorarioController::class, 'filtrarRutas'])->name('
 
 Route::get('/detalle/{id}', [DetalleController::class, 'index'])->name('detalle');
 
-//ruta para planificar viaje
+//ruta para planificar viaje, solo la vista
 Route::get('/planificar', [PlanificarViajeController::class, 'index']);
+
+//AJAX para seleccionar ruta
+Route::get('/planificar/seleccionarRuta', [PlanificarViajeController::class, 'seleccionarRuta'])->name('planificar.seleccionarRuta');
+//ruta para procesar el formulario de planificar viaje
+Route::post('/planificar/guardar', [PlanificarViajeController::class, 'guardar'])->name('planificar.guardar');
