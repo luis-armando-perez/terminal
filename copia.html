@@ -1,0 +1,43 @@
+    <h2>Ruta de {{ $ruta['origen'] }} a {{ $ruta['destino'] }}</h2>
+
+    <div id="map" style="height: 500px;"></div>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+
+    <style>
+        .leaflet-routing-container {
+            display: none !important;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const map = L.map('map').setView([{{ $ruta['lat_origen'] }}, {{ $ruta['lon_origen'] }}], 10);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            L.Routing.control({
+                waypoints: [
+                    L.latLng({{ $ruta['lat_origen'] }}, {{ $ruta['lon_origen'] }}),
+                L.latLng({{ $ruta['lat_destino'] }}, {{ $ruta['lon_destino'] }})
+                ],
+            lineOptions: {
+                styles: [{ color: '#2563EB', weight: 5 }]
+            },
+            addWaypoints: false,
+                draggableWaypoints: false,
+                    fitSelectedRoutes: true,
+                        routeWhileDragging: false,
+                            createMarker: function(i, wp) {
+                                return L.marker(wp.latLng)
+                                    .bindPopup(i === 0 ? "Origen: {{ $ruta['origen'] }}" : "Destino: {{ $ruta['destino'] }}");
+                            }
+        }).addTo(map);
+        });
+    </script>
+                    /*<!--<a href="{{ route('detalle', $ruta['id']) }}">Detalle</a>-->*/
+copia

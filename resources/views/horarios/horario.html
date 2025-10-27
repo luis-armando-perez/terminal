@@ -1,0 +1,98 @@
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-900 mb-1">Horarios de Autobuses</h1>
+      <p class="text-sm text-gray-600">Consulta los horarios de salida y llegada de los autobuses en tiempo real.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <form id="filtroCiudad" class="mb-4">
+              <label for="ciudad" class="font-semibold mr-2">Filtrar por ciudad:</label>
+              <select id="ciudad"
+                class="w-full appearance-none bg-white border border-gray-300 rounded-md px-4 py-2.5 pr-10 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all cursor-pointer hover:border-gray-400">
+                <option value="" selected disabled>Todas las ciudades</option>
+                <option value="managua">Managua</option>
+                <option value="ocotal">Ocotal</option>
+                <option value="esteli">Esteli</option>
+                <option value="trujillo">Trujillo</option>
+                <option value="chiclayo">Chiclayo</option>
+                <option value="piura">Piura</option>
+                <option value="iquitos">Iquitos</option>
+                <option value="huancayo">Huancayo</option>
+              </select>
+
+              <!-- Custom Chevron Icon -->
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </form>
+
+
+            <table class="w-full">
+              <thead>
+                <tr class="bg-gray-100 border-b border-gray-200">
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Destino
+                  </th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Precio</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Salida</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Tipo de
+                    Autobús</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Estado</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Notificar
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200" id="tablaRutas">
+
+
+
+                <tr class="hover:bg-gray-50 transition-colors">
+                  <td colspan="6" class="text-center text-gray-500 py-4">
+                    Selecciona una ciudad para ver las rutas
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-sm p-5">
+          <h2 class="text-lg font-bold text-gray-900 mb-4">Clima en Destinos</h2>
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              @foreach ($ciudades as $ciudad)
+                @php
+                  // Buscamos el clima correspondiente a esta ciudad
+                  $climaCiudad = collect($response)->firstWhere('nombre', $ciudad->nombre_ciudad);
+                @endphp
+                <div class="bg-white rounded-lg shadow-md p-4 flex flex-col items-center text-center">
+                  <!-- Nombre de la ciudad -->
+                  <h3 class="text-sm font-semibold text-gray-900 mb-1">{{ $ciudad->nombre_ciudad }}</h3>
+                  @if($climaCiudad)
+                    <!-- Icono del clima -->
+                    <img src="{{ $climaCiudad['icon'] }}" alt="{{ $climaCiudad['condicion'] }}" class="w-12 h-12 mb-1">
+
+                    <!-- Temperatura -->
+                    <p class="text-xl font-bold text-gray-900 mb-1">{{ $climaCiudad['temperatura'] }}°C</p>
+
+                    <!-- Condición -->
+                    <p class="text-xs text-gray-600">{{ $climaCiudad['condicion'] }}</p>
+                  @else
+                    <p class="text-xs text-gray-600">No hay datos de clima</p>
+                  @endif
+                </div>
+              @endforeach
+
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
