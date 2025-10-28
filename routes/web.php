@@ -23,3 +23,9 @@ Route::get('/planificar', [PlanificarViajeController::class, 'index']);
 Route::get('/planificar/seleccionarRuta', [PlanificarViajeController::class, 'seleccionarRuta'])->name('planificar.seleccionarRuta');
 //ruta para procesar el formulario de planificar viaje
 Route::post('/planificar/guardar', [PlanificarViajeController::class, 'guardar'])->name('planificar.guardar');
+
+//AJAX para mostrar los planes guardados
+Route::get('/planificar/listar', [PlanificarViajeController::class, 'mostrarPlan'])->name('planificar.listar');
+//ruta para eliminar planes
+
+Route::delete('/planificar/eliminar/{id}', [PlanificarViajeController::class, 'eliminar'])->name('planificar.eliminar');
