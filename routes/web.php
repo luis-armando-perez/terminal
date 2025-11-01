@@ -5,14 +5,16 @@ use App\Http\Controllers\InicioController;
 use App\Http\Controllers\DetalleController;
 use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\PlanificarViajeController;
-
+use App\Http\Controllers\LoginRegisterController;
 
 Route::get('/', [InicioController::class, 'index']);
 
 Route::get('/inicio', [InicioController::class, 'index']);
+
 Route::get('/horarios', [HorarioController::class, 'index']);
 //AJAX para filtrar rutas por ciudad
 Route::get('/horarios/ajax', [HorarioController::class, 'filtrarRutas'])->name('horarios.ajax');
+
 
 Route::get('/detalle/{id}', [DetalleController::class, 'index'])->name('detalle');
 
@@ -29,3 +31,10 @@ Route::get('/planificar/listar', [PlanificarViajeController::class, 'mostrarPlan
 //ruta para eliminar planes
 
 Route::delete('/planificar/eliminar/{id}', [PlanificarViajeController::class, 'eliminar'])->name('planificar.eliminar');
+
+//ruta para actualizar planes
+Route::put('/planificar/actualizar/{id}', [PlanificarViajeController::class, 'actualizar'])->name('planificar.actualizar');
+
+
+//login y register
+Route::get('/login', [LoginRegisterController::class, 'index']);

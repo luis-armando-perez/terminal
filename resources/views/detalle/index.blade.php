@@ -71,7 +71,7 @@
 
         @endif
 
-        @if ($weatherData)
+        @if(isset($weatherData['current']))
           <div
             class="backdrop-blur-md bg-white/60 border border-white/40 shadow-lg rounded-2xl p-4 flex items-center gap-4 hover:bg-white/70 transition-all duration-300">
             <div class="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center shadow-md">
@@ -94,8 +94,12 @@
               </svg>
             </button>
           </div>
-
+        @elseif(isset($weatherData['error']))
+          <p class="text-red-500 text-sm">{{ $weatherData['error'] }}</p>
+        @else
+          <p class="text-gray-500 text-sm">No se pudo obtener información del clima.</p>
         @endif
+
 
       </div>
     </div>

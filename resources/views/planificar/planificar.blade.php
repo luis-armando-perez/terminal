@@ -8,6 +8,8 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
         <title>PLanificar Viaje</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,7 +34,7 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Destino</label>
-                            <select id="selectDestino" data-url="{{ route('planificar.seleccionarRuta') }}"
+                            <select required id="selectDestino" data-url="{{ route('planificar.seleccionarRuta') }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-500">
                                 <option selected disabled>Selecciona un destino</option>
                                 <option value="ocotal">Ocotal</option>
@@ -45,21 +47,21 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Día</label>
                                 <div class="relative">
-                                    <input type="date" id="inputDia" placeholder="mm/dd/yyyy"
+                                    <input required type="date" id="inputDia" placeholder="mm/dd/yyyy"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
                                 <div class="relative">
-                                    <input type="time" id="inputHora" placeholder="--:--"
+                                    <input required type="time" id="inputHora" placeholder="--:--"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
                             </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Selecciona una ruta</label>
-                            <select id="selectRuta"
+                            <select required id="selectRuta"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-500">
                                 <option selected disabled>Selecciona una ruta</option>
                             </select>
@@ -68,7 +70,7 @@
                         <!-- aqui tiene que cargar el precio dependiendo de la ruta-->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Precio</label>
-                            <input type="text" id="inputPrecio" value=""
+                            <input readonly type="text" id="inputPrecio" value=""
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
@@ -99,8 +101,77 @@
             </div>
         </div>
 
+        <!-- Modal para editar -->
+        <div id="modalEditar"
+            class="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center hidden z-50 transition-all">
 
-        @vite('resources/js/app.js');
+            <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4 border border-gray-200">
+                <!-- Encabezado -->
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h3 class="text-lg font-semibold text-gray-800">Editar Plan</h3>
+                    <button id="cerrarModal" class="text-gray-500 hover:text-gray-700 transition-colors duration-150">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Formulario -->
+                <form id="formEditar" class="space-y-4">
+                    <input type="hidden" id="editarId" name="id">
+
+
+
+                    <!-- Destino -->
+                    <div>
+                        <label for="editarDestino" class="block text-sm font-medium text-gray-700">Destino</label>
+                        <input type="text" id="editarDestino" name="destino" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <!-- Hora -->
+                    <div>
+                        <label for="editarHora" class="block text-sm font-medium text-gray-700">Hora</label>
+                        <input type="time" id="editarHora" name="hora" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <!-- Precio -->
+                    <div>
+                        <label for="editarPrecio" class="block text-sm font-medium text-gray-700">Precio (C$)</label>
+                        <input type="number" id="editarPrecio" name="precio" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 
+                                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="flex justify-end gap-3 pt-4">
+                        <button type="button" id="cancelarEditar" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md 
+                                hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md 
+                                hover:bg-blue-700 transition-colors">
+                            Actualizar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Loader -->
+        <div id="loader"
+            class="fixed inset-0 flex items-center justify-center bg-white/40 backdrop-blur-md hidden z-[1000]">
+            <div
+                class="w-14 h-14 border-4 border-blue-500 border-t-transparent rounded-full animate-spin shadow-md shadow-blue-200">
+            </div>
+        </div>
+
+
+
+
+
+        @vite(entrypoints: 'resources/js/app.js');
 
 
     </body>

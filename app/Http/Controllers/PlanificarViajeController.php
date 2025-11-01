@@ -51,7 +51,7 @@ class PlanificarViajeController extends Controller
     public function mostrarPlan(Request $request)
     {
         $planes = DB::table('planificar')
-            ->select('id', 'destino', 'hora', 'precio')
+            ->select('id', 'ruta_id','destino', 'hora', 'precio')
             ->get();
         return response()->json($planes);
 
@@ -65,6 +65,24 @@ class PlanificarViajeController extends Controller
             return response()->json(['success' => true, 'message' => 'Plan eliminado correctamente.']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error al eliminar el plan.']);
+        }
+    }
+
+    public function actualizar(Request $request, $id)
+    {
+        try {
+            DB::table('planificar')
+                ->where('id', $id)
+                ->update([
+                    'destino' => $request->destino,
+                    'hora' => $request->hora,
+                    'precio' => $request->precio,
+                    
+                ]);
+
+            return response()->json(['success' => true, 'message' => 'Plan actualizado correctamente.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al actualizar el plan.']);
         }
     }
 

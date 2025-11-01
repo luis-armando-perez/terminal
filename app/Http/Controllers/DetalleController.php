@@ -23,15 +23,16 @@ class DetalleController extends Controller
                 'longitud_destino'
             )
             ->first();
+
         if (!$ruta) {
             abort(404, 'Ruta no encontrada');
-
         }
 
         $apiKey = config('services.weatherapi.key');
         $lat = $ruta->latitud_destino;
         $lon = $ruta->longitud_destino;
 
+        $weatherData = null; // 👈 Asegura que exista
 
         $response = Http::withoutVerifying()->get('https://api.weatherapi.com/v1/current.json', [
             'key' => $apiKey,
@@ -39,17 +40,16 @@ class DetalleController extends Controller
             'lang' => 'es'
         ]);
 
-
         if ($response->successful()) {
             $weatherData = $response->json();
-            // Puedes pasar $weatherData a la vista si es necesario
         } else {
-            // Manejar el error de la API si es necesario
+            // Opcional: manejar el error, por ejemplo mostrar un mensaje genérico
+            $weatherData = ['error' => 'No se pudo obtener el clima.'];
         }
 
-        return view('detalle.index', compact('ruta', "weatherData"));
-
+        return view('detalle.index', compact('ruta', 'weatherData'));
     }
+
 
 
 
