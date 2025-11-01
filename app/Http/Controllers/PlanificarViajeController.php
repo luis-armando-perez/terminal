@@ -51,12 +51,21 @@ class PlanificarViajeController extends Controller
     public function mostrarPlan(Request $request)
     {
         $planes = DB::table('planificar')
-            ->select('id', 'ruta_id','destino', 'hora', 'precio')
+            ->join('rutas', 'planificar.ruta_id', '=', 'rutas.id')
+            ->select(
+                'planificar.id',
+                'planificar.destino',
+                'planificar.dia',
+                'rutas.salida',
+                'rutas.tipo',
+                'rutas.precio'
+            )
+            ->orderBy('planificar.id', 'desc')
             ->get();
+
         return response()->json($planes);
-
-
     }
+
 
     public function eliminar($id)
     {
@@ -77,7 +86,7 @@ class PlanificarViajeController extends Controller
                     'destino' => $request->destino,
                     'hora' => $request->hora,
                     'precio' => $request->precio,
-                    
+
                 ]);
 
             return response()->json(['success' => true, 'message' => 'Plan actualizado correctamente.']);
@@ -88,23 +97,40 @@ class PlanificarViajeController extends Controller
 
     public function guardar(Request $request)
     {
-        $request->validate([
+        // Validación
+        $validated = $request->validate([
             'ruta_id' => 'required|integer',
-            'destino' => 'required|string',
-            'hora' => 'required',
-            'precio' => 'required|numeric',
+            'destino' => 'required|string|max:255',
+            'dia' => 'required|date',
+            'precio' => 'required|numeric|min:0',
         ]);
 
-        DB::table('planificar')->insert([
-            'ruta_id' => $request->ruta_id,
-            'destino' => $request->destino,
-            'hora' => $request->hora,
-            'precio' => $request->precio,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        try {
+            // Para Supabase, usamos el mismo código de Laravel
+            // Supabase es PostgreSQL compatible
 
-        return response()->json(['message' => 'Viaje planificado con éxito!']);
+            DB::table('planificar')->insert([
+                'ruta_id' => $validated['ruta_id'],
+                'destino' => $validated['destino'],
+                'dia' => $validated['dia'], // Nuevo campo
+                'precio' => $validated['precio'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Viaje planificado con éxito!'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al guardar planificación: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al guardar en la base de datos: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
 

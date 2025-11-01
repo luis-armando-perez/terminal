@@ -2,11 +2,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const selectDestino = document.getElementById("selectDestino");
     const selectRuta = document.getElementById("selectRuta");
     const inputPrecio = document.getElementById("inputPrecio");
-    const hora = document.getElementById("inputHora").value; // input type="time"
+    const inputDia = document.getElementById("inputDia");
     const formPlanificar = document.getElementById("formPlanificar");
 
     const urlRutas = selectDestino.dataset.url;
 
+    // 🔹 Cuando cambia el destino, cargamos las rutas disponibles
     selectDestino.addEventListener("change", async () => {
         const destino = selectDestino.value;
         selectRuta.innerHTML = `<option selected disabled>Cargando rutas...</option>`;
@@ -14,22 +15,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             const res = await fetch(
-                `${urlRutas}?destino=${encodeURIComponent(
-                    destino
-                )}&hora=${hora}`
+                `${urlRutas}?destino=${encodeURIComponent(destino)}`
             );
+            if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+
             const rutas = await res.json();
 
             selectRuta.innerHTML = `<option selected disabled>Selecciona una ruta</option>`;
 
-            if (rutas.length === 0) {
+            if (!rutas.length) {
                 selectRuta.innerHTML = `<option disabled>No hay rutas disponibles</option>`;
                 return;
             }
 
+            // 🔹 Mostrar hora (salida) y tipo en el select
             rutas.forEach((r) => {
                 selectRuta.innerHTML += `
-                    <option value="${r.id}" data-precio="${r.precio}">
+                    <option 
+                        value="${r.id}" 
+                        data-precio="${r.precio}">
                         ${r.salida} — ${r.tipo}
                     </option>
                 `;
@@ -40,39 +44,70 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // 🔹 Actualizar precio cuando se selecciona una ruta
     selectRuta.addEventListener("change", () => {
-        const precio =
-            selectRuta.options[selectRuta.selectedIndex].dataset.precio;
-        inputPrecio.value = `${precio} C$`;
+        const option = selectRuta.options[selectRuta.selectedIndex];
+        if (!option || !option.dataset.precio) {
+            inputPrecio.value = "";
+            return;
+        }
+        inputPrecio.value = `${option.dataset.precio} C$`;
     });
 
+    // 🔹 Enviar formulario
     formPlanificar.addEventListener("submit", async (e) => {
-        e.preventDefault(); // Evita recargar la página
+        e.preventDefault();
+
+        const option = selectRuta.options[selectRuta.selectedIndex];
+
+        // Validaciones básicas
+        if (!option || !option.value) {
+            alertaError("Por favor, selecciona una ruta válida.");
+            return;
+        }
+        if (!inputDia.value) {
+            alertaError("Por favor, selecciona una fecha.");
+            return;
+        }
 
         const data = {
             ruta_id: selectRuta.value,
             destino: selectDestino.value,
-            hora: inputHora.value,
+            dia: inputDia.value,
             precio: inputPrecio.value.replace(" C$", ""),
         };
+
+        console.log("Datos a enviar:", data);
 
         try {
             const res = await fetch("/planificar/guardar", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": document
-                        .querySelector('meta[name="csrf-token"]')
-                        .getAttribute("content"),
+                    "X-CSRF-TOKEN": document.querySelector(
+                        'meta[name="csrf-token"]'
+                    ).content,
                 },
                 body: JSON.stringify(data),
             });
 
-            const result = await res.json();
+            const text = await res.text();
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch {
+                console.error("Respuesta no JSON:", text);
+                alertaError(
+                    "Ocurrió un error inesperado al guardar la planificación."
+                );
+                return;
+            }
 
             if (res.ok) {
                 alertaExito("El viaje fue planificado correctamente 🎉");
                 formPlanificar.reset();
+                selectRuta.innerHTML = `<option selected disabled>Selecciona una ruta</option>`;
+                inputPrecio.value = "";
             } else {
                 alertaError(result.message || "No se pudo guardar el plan.");
             }
@@ -139,25 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const contenedor = document.getElementById("contenedorPlanificaciones");
     const modal = document.getElementById("modalEditar");
     const formEditar = document.getElementById("formEditar");
-    const cerrarModal = document.getElementById("cerrarModal");
-    const cancelarEditar = document.getElementById("cancelarEditar");
 
-    // --- Función para mostrar el modal y precargar datos ---
-    function abrirModalEditar(plan) {
-        document.getElementById("editarId").value = plan.id;
-        document.getElementById("editarDestino").value = plan.destino;
-        document.getElementById("editarHora").value = plan.hora;
-        document.getElementById("editarPrecio").value = plan.precio;
-
-        modal.classList.remove("hidden");
-    }
-
-    // --- Cerrar modal ---
-    [cerrarModal, cancelarEditar].forEach((btn) =>
-        btn.addEventListener("click", () => modal.classList.add("hidden"))
-    );
-
-    // --- Cargar planes ---
     async function cargarPlanes() {
         mostrarLoader();
         try {
@@ -171,23 +188,75 @@ document.addEventListener("DOMContentLoaded", () => {
                     "<p class='text-gray-500 text-center'>No hay planes disponibles.</p>";
                 return;
             }
-
             planes.forEach((plan) => {
-                contenedor.innerHTML += `
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors" data-plan-id="${plan.id}">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <h3 class="font-semibold text-gray-800">${plan.destino}</h3>
-                                <p class="text-sm text-gray-600 mb-1">Hora: ${plan.hora}</p>
-                                <p class="text-sm text-gray-500">Precio: ${plan.precio} C$</p>
+                // 🔹 Asignamos color según el destino
+                let colorIcono = "text-gray-600"; // color predeterminado
+                let fondoIcono = "bg-gray-100"; // fondo predeterminado
+
+                switch (plan.destino.toLowerCase()) {
+                    case "ocotal":
+                        colorIcono = "text-green-600";
+                        fondoIcono = "bg-green-100";
+                        break;
+                    case "managua":
+                        colorIcono = "text-red-600";
+                        fondoIcono = "bg-red-100";
+                        break;
+                    case "esteli":
+                        colorIcono = "text-blue-600";
+                        fondoIcono = "bg-blue-100";
+                        break;
+                    case "san jose de cusmapa":
+                        colorIcono = "text-purple-600";
+                        fondoIcono = "bg-purple-100";
+                        break;
+                    case "las sabanas":
+                        colorIcono = "text-yellow-600";
+                        fondoIcono = "bg-yellow-100";
+                        break;
+                }
+
+                            contenedor.innerHTML += `
+                    <div 
+                        class="bg-white rounded-2xl shadow-sm p-6 mb-4 transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02]" 
+                        data-plan-id="${plan.id}">
+                        
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-4">
+                                <div class="${fondoIcono} rounded-2xl p-4">
+                                    <svg class="w-8 h-8 ${colorIcono}" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-xl font-bold text-gray-900">${plan.destino}</h2>
+                                    <p class="text-gray-500 text-sm">Ruta directa desde Somoto</p>
+                                </div>
                             </div>
-                            <div class="flex gap-2 ml-4">
-                                <button class="text-blue-600 hover:text-blue-800 font-semibold editar-btn" data-id="${plan.id}">Editar</button>
-                                <button class="text-red-600 hover:text-red-800 font-semibold eliminar-btn" data-id="${plan.id}">Eliminar</button>
+                            <div class="bg-blue-50 rounded-full px-4 py-2">
+                                <span class="text-blue-600 font-bold text-lg">${plan.precio}</span>
+                                <span class="text-blue-600 text-sm ml-1">C$</span>
                             </div>
                         </div>
-                    </div>
-                `;
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                                    <path d="M12 6v6l4 2" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <span class="font-medium">${plan.salida}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition eliminar-btn" data-id="${plan.id}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
             });
         } catch (error) {
             console.error("Error al cargar planificaciones:", error);

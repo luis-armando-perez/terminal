@@ -39,11 +39,16 @@
                                 <option selected disabled>Selecciona un destino</option>
                                 <option value="ocotal">Ocotal</option>
                                 <option value="managua">Managua</option>
-                                <option value="esteli">Estali</option>
+                                <option value="esteli">Esteli</option>
+                                <option value="san jose de cusmapa">Cusmapa</option>
+                                <option value="las sabanas">Las sabanas</option>
+                                <option value="el espino">El espino</option>
+
+
                             </select>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid gap-3">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Día</label>
                                 <div class="relative">
@@ -51,19 +56,13 @@
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
-                                <div class="relative">
-                                    <input required type="time" id="inputHora" placeholder="--:--"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                </div>
-                            </div>
+
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Selecciona una ruta</label>
                             <select required id="selectRuta"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-500">
-                                <option selected disabled>Selecciona una ruta</option>
+                                <option>Selecciona una ruta</option>
                             </select>
                         </div>
 
@@ -76,7 +75,7 @@
 
                         <!-- Submit Button -->
                         <button type="submit"
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition-colors">
+                            class="bg-gradient-to-r from-blue-600 to-green-500 text-white font-semibold text-lg px-8 py-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 w-full max-w-sm">
                             Seleccionar
                         </button>
                     </form>
@@ -127,31 +126,31 @@
                     <div>
                         <label for="editarDestino" class="block text-sm font-medium text-gray-700">Destino</label>
                         <input type="text" id="editarDestino" name="destino" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 
-                                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
 
                     <!-- Hora -->
                     <div>
                         <label for="editarHora" class="block text-sm font-medium text-gray-700">Hora</label>
                         <input type="time" id="editarHora" name="hora" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 
-                                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
 
                     <!-- Precio -->
                     <div>
                         <label for="editarPrecio" class="block text-sm font-medium text-gray-700">Precio (C$)</label>
                         <input type="number" id="editarPrecio" name="precio" step="0.01" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 
-                                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
 
                     <!-- Botones -->
                     <div class="flex justify-end gap-3 pt-4">
                         <button type="button" id="cancelarEditar" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md 
-                                hover:bg-gray-50 transition-colors">
+                                            hover:bg-gray-50 transition-colors">
                             Cancelar
                         </button>
                         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md 
-                                hover:bg-blue-700 transition-colors">
+                                            hover:bg-blue-700 transition-colors">
                             Actualizar
                         </button>
                     </div>
