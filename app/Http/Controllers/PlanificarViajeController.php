@@ -7,21 +7,28 @@ use Illuminate\Support\Facades\DB;
 
 class PlanificarViajeController extends Controller
 {
-    /* public function seleccionarRuta(Request $request)
-     {
-         $destino = $request->query('destino'); // captura ?destino=algo
 
-         $query = DB::table('rutas')
-             ->select('id', 'destino', 'salida', 'precio');
+    public function mostrarPlan(Request $request)
+    {
+        $tenantId = auth()->user()->tenant_id;
 
-         if ($destino) {
-             $query->where('destino', $destino);
-         }
+        $planes = DB::table('planificar')
+            ->join('rutas', 'planificar.ruta_id', '=', 'rutas.id')
+            ->select(
+                'planificar.id',
+                'planificar.destino',
+                'planificar.dia',
+                'rutas.salida',
+                'rutas.tipo',
+                'rutas.precio'
+            )
+            ->where('planificar.tenant_id', $tenantId) // ⚡ solo planes de este tenant
+            ->orderBy('planificar.id', 'desc')
+            ->get();
 
-         $rutas = $query->get();
+        return response()->json($planes);
+    }
 
-         return response()->json($rutas);
-     }*/
     public function seleccionarRuta(Request $request)
     {
         $destino = $request->query('destino'); // ciudad
@@ -48,23 +55,6 @@ class PlanificarViajeController extends Controller
         return response()->json($rutas);
     }
 
-    public function mostrarPlan(Request $request)
-    {
-        $planes = DB::table('planificar')
-            ->join('rutas', 'planificar.ruta_id', '=', 'rutas.id')
-            ->select(
-                'planificar.id',
-                'planificar.destino',
-                'planificar.dia',
-                'rutas.salida',
-                'rutas.tipo',
-                'rutas.precio'
-            )
-            ->orderBy('planificar.id', 'desc')
-            ->get();
-
-        return response()->json($planes);
-    }
 
 
     public function eliminar($id)
@@ -77,27 +67,9 @@ class PlanificarViajeController extends Controller
         }
     }
 
-    public function actualizar(Request $request, $id)
-    {
-        try {
-            DB::table('planificar')
-                ->where('id', $id)
-                ->update([
-                    'destino' => $request->destino,
-                    'hora' => $request->hora,
-                    'precio' => $request->precio,
-
-                ]);
-
-            return response()->json(['success' => true, 'message' => 'Plan actualizado correctamente.']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error al actualizar el plan.']);
-        }
-    }
 
     public function guardar(Request $request)
     {
-        // Validación
         $validated = $request->validate([
             'ruta_id' => 'required|integer',
             'destino' => 'required|string|max:255',
@@ -106,14 +78,15 @@ class PlanificarViajeController extends Controller
         ]);
 
         try {
-            // Para Supabase, usamos el mismo código de Laravel
-            // Supabase es PostgreSQL compatible
+            // Obtener tenant_id del usuario logueado
+            $tenantId = auth()->user()->tenant_id;
 
             DB::table('planificar')->insert([
                 'ruta_id' => $validated['ruta_id'],
                 'destino' => $validated['destino'],
-                'dia' => $validated['dia'], // Nuevo campo
+                'dia' => $validated['dia'],
                 'precio' => $validated['precio'],
+                'tenant_id' => $tenantId, // ⚡ Asociamos el plan al tenant
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -132,7 +105,6 @@ class PlanificarViajeController extends Controller
             ], 500);
         }
     }
-
 
 
 

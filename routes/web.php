@@ -5,11 +5,16 @@ use App\Http\Controllers\InicioController;
 use App\Http\Controllers\DetalleController;
 use App\Http\Controllers\HorarioController;
 use App\Http\Controllers\PlanificarViajeController;
-use App\Http\Controllers\LoginRegisterController;
+use App\Http\Controllers\LoginRegisterController; //solo mostrar la vista
+use App\Http\Controllers\Auth\RegisterController;
+
+use App\Http\Controllers\Auth\LoginController;
+
+
 
 Route::get('/', [InicioController::class, 'index']);
 
-Route::get('/inicio', [InicioController::class, 'index']);
+Route::get('/inicio', [InicioController::class, 'index'])->name('inicio');
 
 Route::get('/horarios', [HorarioController::class, 'index']);
 //AJAX para filtrar rutas por ciudad
@@ -31,9 +36,20 @@ Route::get('/planificar/listar', [PlanificarViajeController::class, 'mostrarPlan
 //ruta para eliminar planes
 Route::delete('/planificar/eliminar/{id}', [PlanificarViajeController::class, 'eliminar'])->name('planificar.eliminar');
 
-//ruta para actualizar planes
-Route::put('/planificar/actualizar/{id}', [PlanificarViajeController::class, 'actualizar'])->name('planificar.actualizar');
 
 
-//login y register
-Route::get('/login', [LoginRegisterController::class, 'index']);
+
+//login y register mostrar vista
+Route::get('/registrarUsuario', [LoginRegisterController::class, 'index']);
+
+//registrar usuario
+Route::post('/register', action: [RegisterController::class, 'register'])->name('register');
+
+// Mostrar el formulario de login (opcional si ya tienes la vista)
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+
+// Procesar el login
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+
+// Logout
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

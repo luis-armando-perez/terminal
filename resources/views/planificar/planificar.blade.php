@@ -16,6 +16,7 @@
     </head>
 
     <body class="bg-gray-100 p-8">
+        
         <div class="max-w-7xl mx-auto">
             <h1 class="text-3xl font-bold mb-8 text-gray-900">Planifica Tu Proximo Viaje</h1>
 

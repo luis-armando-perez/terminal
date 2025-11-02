@@ -1,141 +1,190 @@
 @extends('layouts.app')
 
 @section('content')
-  @vite('resources/css/app.css')
+@vite('resources/css/app.css')
 
+<!DOCTYPE html>
+<html lang="es">
 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
-  <!DOCTYPE html>
-  <html lang="es">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-  </head>
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
 
-  <body id="body"
-    class="h-screen bg-gradient-to-br from-blue-200 via-teal-100 to-green-200 flex items-center justify-center">
+    .leaflet-container {
+      border-radius: 1.5rem;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
 
-    <div class="relative w-11/12 h-[90vh] rounded-3xl overflow-hidden shadow-2xl border border-white/40 backdrop-blur-lg">
-      @if ($ruta)
+    .leaflet-container:hover {
+      transform: scale(1.01);
+    }
 
-        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-30 animate-fadeIn">
-          <div
-            class="backdrop-blur-md bg-white/70 shadow-lg rounded-xl px-4 py-2.5 border border-white/30 flex flex-col items-center text-center w-56">
-            <div class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">
-              Ruta
-            </div>
-            <div class="flex flex-col items-center">
-              <div class="text-sm font-semibold text-blue-700">
-                {{ $ruta->origen }}
-              </div>
-              <div class="my-1">
-                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </div>
-              <div class="text-sm font-semibold text-green-700">
-                {{ $ruta->destino }}
-              </div>
-            </div>
-          </div>
+    .pulse-dot {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    @media (max-width: 640px) {
+      .info-panels {
+        flex-direction: column;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        align-items: center;
+      }
+      .info-card { width: 90%; }
+    }
+  </style>
+</head>
+
+<body class="h-screen bg-gradient-to-br from-blue-100 via-teal-50 to-green-100 flex items-center justify-center">
+
+  <div class="relative w-11/12 h-[90vh] rounded-3xl overflow-hidden shadow-2xl border border-white/30 backdrop-blur-lg">
+
+    @if ($ruta)
+    <!-- HEADER DE RUTA -->
+    <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 w-[90%] sm:w-auto">
+      <div class="glass-effect rounded-2xl shadow-xl p-4 text-center sm:text-left">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Ruta</p>
+        <div class="flex flex-wrap justify-center sm:justify-start items-center gap-2">
+          <span class="text-lg font-bold text-blue-600">{{ $ruta->origen }}</span>
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+          <span class="text-lg font-bold text-purple-600">{{ $ruta->destino }}</span>
         </div>
-
-
-      @endif
-      <!-- Mapa -->
-      <div id="mapa" class="absolute inset-0 z-0"></div>
-
-      <!-- Gradiente oscuro sutil arriba para legibilidad -->
-      <div class="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent z-10 pointer-events-none"></div>
-
-      <!-- Controles flotantes -->
-      <div class="absolute bottom-6 left-6 right-6 flex flex-wrap justify-between items-end gap-4 z-20">
-
-        <!-- Panel de llegada -->
-        @if ($ruta)
-          <div
-            class="backdrop-blur-md bg-white/60 border border-white/40 shadow-lg rounded-2xl p-4 min-w-[220px] hover:bg-white/70 transition-all duration-300">
-            <div class="text-xs text-gray-700 uppercase tracking-wide mb-1">Hora de llegada</div>
-            <div class="text-4xl font-bold text-gray-900 mb-2">{{ $ruta->llegada }}</div>
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
-              <span class="text-sm text-green-700 font-semibold">A tiempo</span>
-            </div>
-          </div>
-
-        @endif
-
-        @if(isset($weatherData['current']))
-          <div
-            class="backdrop-blur-md bg-white/60 border border-white/40 shadow-lg rounded-2xl p-4 flex items-center gap-4 hover:bg-white/70 transition-all duration-300">
-            <div class="bg-blue-600 w-14 h-14 rounded-full flex items-center justify-center shadow-md">
-              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-            </div>
-            <div>
-              <div class="font-bold text-gray-900 text-sm">
-                {{ $weatherData['current']['temp_c'] }}°C
-                <img src="https:{{ $weatherData['current']['condition']['icon'] }}" alt="icon" class="w-8 h-8">
-              </div>
-              <div class="text-xs text-gray-700">{{ $weatherData['current']['condition']['text'] }}</div>
-            </div>
-            <button class="ml-2 text-gray-500 hover:text-gray-700 transition-colors">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
-            </button>
-          </div>
-        @elseif(isset($weatherData['error']))
-          <p class="text-red-500 text-sm">{{ $weatherData['error'] }}</p>
-        @else
-          <p class="text-gray-500 text-sm">No se pudo obtener información del clima.</p>
-        @endif
-
-
       </div>
     </div>
+    @endif
 
-    <script>
-      var lat_origen = {{ $ruta->latitud_origen }};
-      var lon_origen = {{ $ruta->longitud_origen }};
-      var lat_destino = {{ $ruta->latitud_destino }};
-      var lon_destino = {{ $ruta->longitud_destino }};
+    <!-- MAPA -->
+    <div id="mapa" class="w-full h-full"></div>
 
-      var mapa = L.map("mapa", {
-        zoomControl: false,
-        preferCanvas: true,
-        fadeAnimation: false,
-        zoomAnimation: false
-      }).setView([lat_origen, lon_origen], 13);
+    <!-- Gradiente sutil -->
+    <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10 pointer-events-none"></div>
 
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "© OpenStreetMap contributors",
-      }).addTo(mapa);
+    <!-- PANEL INFERIOR -->
+    <div class="absolute bottom-6 left-6 right-6 flex justify-between flex-wrap gap-4 z-20 info-panels">
 
-      L.Routing.control({
-        waypoints: [
-          L.latLng(lat_origen, lon_origen),
-          L.latLng(lat_destino, lon_destino)
-        ],
-        routeWhileDragging: false,
-        draggableWaypoints: false,
-        addWaypoints: false
-      }).addTo(mapa);
-    </script>
-  </body>
+      @if ($ruta)
+      <div class="glass-effect rounded-2xl shadow-2xl p-5 min-w-[260px] info-card">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Hora de Llegada</p>
+            <h2 class="text-4xl font-bold text-gray-900 tracking-tight">{{ $ruta->llegada }}</h2>
+          </div>
+          <div class="bg-gradient-to-br from-blue-500 to-purple-600 p-2 rounded-xl">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 pt-3 border-t border-gray-200">
+          <span class="relative flex h-3 w-3">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+          </span>
+          <span class="text-sm font-semibold text-green-600">A tiempo</span>
+        </div>
+      </div>
+      @endif
 
+      @if(isset($weatherData['current']))
+      <div class="glass-effect rounded-2xl shadow-2xl p-5 min-w-[260px] info-card">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Clima Actual</p>
+            <h3 class="text-3xl font-bold text-gray-900 mb-1">{{ $weatherData['current']['temp_c'] }}°C</h3>
+            <p class="text-sm text-gray-600 font-medium">{{ $weatherData['current']['condition']['text'] }}</p>
+          </div>
+          <div class="bg-gradient-to-br from-blue-400 to-blue-600 p-3 rounded-xl">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      @endif
+    </div>
+  </div>
 
-  </html>
-  @vite('resources/js/app.js')
+  <script>
+    var lat_origen = {{ $ruta->latitud_origen }};
+    var lon_origen = {{ $ruta->longitud_origen }};
+    var lat_destino = {{ $ruta->latitud_destino }};
+    var lon_destino = {{ $ruta->longitud_destino }};
 
+    var mapa = L.map("mapa", {
+      zoomControl: false,
+      preferCanvas: true,
+    }).setView([lat_origen, lon_origen], 13);
+
+    // Nuevo fondo más limpio
+    L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(mapa);
+
+    // Marcadores con iconos
+    var origenIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // 🚌 icono de bus de origen
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+    });
+
+    var destinoIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // 🏁 icono de destino, puedes cambiarlo
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+    });
+
+    L.marker([lat_origen, lon_origen], { icon: origenIcon }).addTo(mapa);
+    L.marker([lat_destino, lon_destino], { icon: destinoIcon }).addTo(mapa);
+
+    // Ruta visual
+    L.Routing.control({
+      waypoints: [
+        L.latLng(lat_origen, lon_origen),
+        L.latLng(lat_destino, lon_destino)
+      ],
+      lineOptions: {
+        styles: [{ color: '#3B82F6', opacity: 0.9, weight: 5 }]
+      },
+      createMarker: () => null,
+      routeWhileDragging: false,
+      draggableWaypoints: false,
+      addWaypoints: false
+    }).addTo(mapa);
+  </script>
+</body>
+
+</html>
+@vite('resources/js/app.js')
 @endsection

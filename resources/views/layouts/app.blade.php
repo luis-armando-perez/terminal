@@ -6,13 +6,14 @@
 
 <body class="bg-gray-50">
     <!-- Navbar Superior -->
+    <!-- Navbar Superior -->
     <header class="fixed top-0 left-0 w-full bg-white shadow-md z-50">
         <div class="max-w-7xl mx-auto flex items-center justify-between p-4">
             <!-- Logo / Nombre del sitio -->
             <h1 class="text-2xl font-bold text-gray-800">Mi Sitio</h1>
 
             <!-- Menú links (desktop) -->
-            <nav class="hidden lg:flex gap-4">
+            <nav class="hidden lg:flex gap-4 items-center">
                 <a href="/inicio"
                     class="flex items-center gap-2 px-3 py-2 text-gray-700 rounded-md hover:bg-blue-100 hover:text-blue-700 transition-all duration-200">
                     <x-heroicon-o-home class="w-5 h-5 text-gray-500" />
@@ -28,10 +29,26 @@
                     <x-heroicon-o-calendar class="w-5 h-5 text-gray-500" />
                     <span>Planificar Viaje</span>
                 </a>
-                <a href="/login"
-                    class="flex items-center gap-2 px-3 py-2 text-gray-700 rounded-md hover:bg-blue-100 hover:text-blue-700 transition-all duration-200">
-                    <span>Inicia sesion</span>
-                </a>
+
+                <!-- Auth check -->
+                @auth
+                    <div
+                        class="flex items-center gap-2 px-3 py-2 text-gray-700 rounded-md hover:bg-blue-100 hover:text-blue-700 transition-all duration-200">
+                        <x-heroicon-o-user class="w-5 h-5 text-gray-500" />
+                        <span>{{ Auth::user()->name }}</span>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="ml-2 text-sm text-red-600 hover:text-red-800 font-semibold">
+                                Logout
+                            </button>
+                        </form>
+                    </div>
+                @else
+                    <a href="/login"
+                        class="flex items-center gap-2 px-3 py-2 text-gray-700 rounded-md hover:bg-blue-100 hover:text-blue-700 transition-all duration-200">
+                        <span>Inicia sesión</span>
+                    </a>
+                @endauth
             </nav>
 
             <!-- Botón hamburguesa móvil -->
@@ -58,15 +75,30 @@
                         class="block px-4 py-3 text-gray-700 hover:bg-blue-100 hover:text-blue-700 transition-all duration-200">Planificar
                         Viaje</a>
                 </li>
-                <li>
-                    <a href="/login"
-                        class="block px-4 py-3 text-gray-700 hover:bg-blue-100 hover:text-blue-700 transition-all duration-200">Inica sesion</a>
-                </li>
+                @auth
+                    <li class="px-4 py-3 text-gray-700 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <x-heroicon-o-user class="w-5 h-5 text-gray-500" />
+                            <span>{{ Auth::user()->name }}</span>
+                        </div>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="text-red-600 hover:text-red-800 font-semibold">Logout</button>
+                        </form>
+                    </li>
+                @else
+                    <li>
+                        <a href="/login"
+                            class="block px-4 py-3 text-gray-700 hover:bg-blue-100 hover:text-blue-700 transition-all duration-200">Inicia
+                            sesión</a>
+                    </li>
+                @endauth
             </ul>
         </div>
     </header>
 
-    <main class="pt-20 p-6">
+
+    <main class="pt-20">
         @yield('content')
     </main>
 
