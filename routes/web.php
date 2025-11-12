@@ -9,6 +9,9 @@ use App\Http\Controllers\LoginRegisterController; //solo mostrar la vista
 use App\Http\Controllers\Auth\RegisterController;
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\PlanificacionController;
+
+use PhpParser\Builder\Use_;
 
 
 
@@ -53,3 +56,5 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 
 // Logout
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+

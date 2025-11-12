@@ -359,38 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // --- Actualizar plan desde el modal ---
-    formEditar.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const id = document.getElementById("editarId").value;
-        const datos = new FormData(formEditar);
-
-        try {
-            const res = await fetch(`/planificar/actualizar/${id}`, {
-                method: "POST",
-                body: datos,
-                headers: {
-                    "X-CSRF-TOKEN": document.querySelector(
-                        'meta[name="csrf-token"]'
-                    ).content,
-                },
-            });
-
-            const result = await res.json();
-
-            if (result.success) {
-                modal.classList.add("hidden");
-                await cargarPlanes();
-            } else {
-                alert("Error: " + result.message);
-            }
-        } catch (error) {
-            console.error("Error al actualizar:", error);
-            alert("No se pudo actualizar el plan.");
-        }
-    });
-
+    
     // --- Inicializar ---
     cargarPlanes();
 });
